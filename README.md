@@ -1,21 +1,30 @@
-# SQLDetector v3 (Qwen Entegre)
+# SQLDetector Qwen
 
-## Kurulum
-```
+Modular, non-destructive SQL injection detector.
+
+## Installation
+```bash
 python -m venv venv
-venv\Scripts\activate
-pip install -r requirements.txt
+source venv/bin/activate
+pip install -e .
 ```
 
-## Çalıştırma
-```
-python sqldetector_qwen.py https://example.com ^
-  --llm-path "C:\llm\qwen3-4b-q4_k_m.gguf" ^
-  --system-prompt-file system.txt ^
-  --rpm 180 --max-pages 1000 --json-out findings.json
+## Usage
+```bash
+python sqldetector_qwen.py https://example.com --dry-run
 ```
 
-## Notlar
-- SYSTEM_PROMPT'u `system.txt` dosyasına yaz veya `SYSTEM_PROMPT` env değişkeni ile geçir.
-- LLM path vermezsen araç LLM'siz fallback ile çalışır (heuristic payload).
-- Araç OKUMA modunda çalışır; yıkıcı işlem yapmaz.
+## Architecture
+```
+sqldetector_qwen.py ─▶ planner.pipeline.run()
+                           │
+                           ├── core/
+                           ├── discovery/
+                           ├── detect/
+                           ├── db/
+                           ├── waf/
+                           ├── payload/
+                           ├── fuzz/
+                           ├── auth/
+                           └── report/
+```
