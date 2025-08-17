@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sqldetector_qwen"
+version = "0.1.0"
+description = "Modular SQL injection detector"
+authors = [{name = "AutoGen"}]
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "httpx[http2]>=0.27",
+    "anyio>=4.0",
+    "lxml>=5.0",
+    "xxhash>=3.4",
+    "playwright>=1.45",
+    "rich>=13.7"
+]
+
+[project.optional-dependencies]
+otel = [
+    "opentelemetry-sdk>=1.26",
+    "opentelemetry-exporter-otlp>=1.26"
+]
+
+[tool.black]
+line-length = 100
+
+[tool.pytest.ini_options]
+addopts = "-q"
+testpaths = ["tests"]
