@@ -6,11 +6,11 @@ from sqldetector.planner import pipeline
 def test_cli_invokes_pipeline(monkeypatch):
     called = {}
 
-    def fake_run(url, dry_run=False):
+    def fake_run(url, dry_run=False, settings=None):
         called['url'] = url
         return []
 
     monkeypatch.setattr(pipeline, 'run', fake_run)
-    monkeypatch.setattr(sys, 'argv', ['sqldetector_qwen.py', 'http://example.com'])
+    monkeypatch.setattr(sys, 'argv', ['sqldetector_qwen.py', 'http://example.com', '--legal-ack'])
     main()
     assert called['url'] == 'http://example.com'

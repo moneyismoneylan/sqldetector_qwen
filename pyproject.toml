@@ -8,7 +8,7 @@ version = "0.1.0"
 description = "Modular SQL injection detector"
 authors = [{name = "AutoGen"}]
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.11"
 dependencies = [
     "httpx[http2]>=0.27",
     "anyio>=4.0",
@@ -19,14 +19,45 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-asyncio",
+    "ruff",
+    "black",
+]
+test = [
+    "pytest",
+    "pytest-asyncio",
+]
+legacy = [
+    "beautifulsoup4",
+    "cloudscraper",
+    "llama-cpp-python==0.2.68",
+    "colorama",
+]
 otel = [
     "opentelemetry-sdk>=1.26",
     "opentelemetry-exporter-otlp>=1.26"
 ]
 
+[project.scripts]
+sqldetector = "sqldetector_qwen:main"
+
+[tool.setuptools.packages.find]
+include = ["sqldetector*"]
+
+[tool.setuptools]
+py-modules = ["sqldetector_qwen"]
+
 [tool.black]
 line-length = 100
+target-version = ["py311"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
 
 [tool.pytest.ini_options]
 addopts = "-q"
 testpaths = ["tests"]
+pythonpath = ["."]
