@@ -15,7 +15,6 @@ pip install -e .
 
 `requirements.txt` lists optional legacy extras; the canonical dependency list lives in `pyproject.toml`.
 
-## Configuration
 
 Create a TOML config and pass with `--config`:
 
