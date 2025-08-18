@@ -6,15 +6,19 @@ from argparse import Namespace
 from dataclasses import dataclass, fields
 from pathlib import Path
 from typing import Any
-
-
+import tomllib
 
 
 @dataclass
 class Settings:
     safe_mode: bool = True
     legal_ack: bool = False
-    timeout: float = 10.0
+    timeout_connect: float = 5.0
+    timeout_read: float = 10.0
+    timeout_write: float = 10.0
+    timeout_pool: float = 5.0
+    max_connections: int = 100
+    max_keepalive_connections: int = 20
     concurrency: int = 5
     retry_budget: int = 5
     rate_limit: int = 5
@@ -38,7 +42,7 @@ def _coerce(field, value: str) -> Any:
         return int(value)
     if field.type is float:
         return float(value)
-    if str(field.type).startswith('pathlib.Path') or 'Path' in str(field.type):
+    if str(field.type).startswith("pathlib.Path") or "Path" in str(field.type):
         return Path(value)
     return value
 
