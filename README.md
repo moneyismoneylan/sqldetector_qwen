@@ -30,6 +30,13 @@ Create a TOML config and pass with `--config`:
 safe_mode = true
 legal_ack = true
 trace_dir = "traces"
+# HTTP client tuning
+timeout_connect = 5.0
+timeout_read = 10.0
+timeout_write = 10.0
+timeout_pool = 5.0
+max_connections = 100
+max_keepalive_connections = 20
 ```
 
 Command line overrides are available, e.g. `--log-json --log-level DEBUG`.

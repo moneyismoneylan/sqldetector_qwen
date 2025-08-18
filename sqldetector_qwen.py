@@ -1,8 +1,8 @@
 import argparse
-import sys
 
 from sqldetector.planner import pipeline
 from sqldetector.core.config import merge_settings
+
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description="AI-powered SQL injection detector")
@@ -21,9 +21,10 @@ def main(argv=None):
 
     settings = merge_settings(args)
     if not settings.legal_ack:
-        print("Legal acknowledgement required (--legal-ack)", file=sys.stderr)
+        parser.error("Legal acknowledgement required (--legal-ack)")
 
     return pipeline.run(args.url, dry_run=args.dry_run, settings=settings)
+
 
 if __name__ == "__main__":
     main()

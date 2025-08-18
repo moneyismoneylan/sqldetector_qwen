@@ -3,8 +3,8 @@ from __future__ import annotations
 import asyncio
 import random
 import time
-from collections import defaultdict
-from typing import Any, Dict, Optional
+from collections import defaultdict, deque
+from typing import Dict
 
 import httpx
 
@@ -24,9 +24,25 @@ class HttpClient:
         self._retry_budget = settings.retry_budget
         self._failures = 0
         self._circuit_open_until = 0.0
+        self._latencies = deque(maxlen=100)
 
     async def __aenter__(self) -> "HttpClient":
-        self._client = httpx.AsyncClient(http2=True, transport=self.settings.transport)
+        timeout = httpx.Timeout(
+            connect=self.settings.timeout_connect,
+            read=self.settings.timeout_read,
+            write=self.settings.timeout_write,
+            pool=self.settings.timeout_pool,
+        )
+        limits = httpx.Limits(
+            max_connections=self.settings.max_connections,
+            max_keepalive_connections=self.settings.max_keepalive_connections,
+        )
+        self._client = httpx.AsyncClient(
+            http2=True,
+            transport=self.settings.transport,
+            timeout=timeout,
+            limits=limits,
+        )
         return self
 
     async def __aexit__(self, exc_type, exc, tb) -> None:  # noqa: D401
@@ -55,7 +71,10 @@ class HttpClient:
         sem = await self._acquire(url)
         try:
             assert self._client is not None
-            return await self._client.request(method, url, **kwargs)
+            start = time.monotonic()
+            resp = await self._client.request(method, url, **kwargs)
+            self._latencies.append(time.monotonic() - start)
+            return resp
         except httpx.TimeoutException as exc:  # pragma: no cover - exercised in tests
             raise TimeoutError(str(exc)) from exc
         finally:
@@ -80,9 +99,18 @@ class HttpClient:
             self._failures = 0
             return resp
 
+    def _compute_hedge_delay(self) -> float:
+        if len(self._latencies) < 5:
+            return self.settings.hedge_delay
+        latencies = sorted(self._latencies)
+        index = int(0.95 * (len(latencies) - 1))
+        p95 = latencies[index]
+        delay = p95 * 0.2
+        return max(0.02, min(0.15, delay))
+
     async def _hedged_request(self, method: str, url: str, **kwargs) -> httpx.Response:
         first = asyncio.create_task(self._request_with_retries(method, url, **kwargs))
-        await asyncio.sleep(self.settings.hedge_delay)
+        await asyncio.sleep(self._compute_hedge_delay())
         second = asyncio.create_task(self._request_with_retries(method, url, **kwargs))
         done, pending = await asyncio.wait({first, second}, return_when=asyncio.FIRST_COMPLETED)
         for task in pending:
@@ -92,7 +120,7 @@ class HttpClient:
     async def request(self, method: str, url: str, **kwargs) -> httpx.Response:
         if time.monotonic() < self._circuit_open_until:
             raise WAFBlocked("circuit open")
-        if self.settings.hedge_delay > 0:
+        if self.settings.hedge_delay > 0 or len(self._latencies) >= 5:
             return await self._hedged_request(method, url, **kwargs)
         return await self._request_with_retries(method, url, **kwargs)
 
