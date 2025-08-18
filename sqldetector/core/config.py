@@ -1,24 +1,13 @@
 from __future__ import annotations
 
 import os
+
 from argparse import Namespace
 from dataclasses import dataclass, fields
 from pathlib import Path
 from typing import Any
 
-# Python 3.11+ provides "tomllib" in the stdlib.  Earlier versions can use the
-# third-party "tomli" package.  This shim keeps the module importable on systems
-# that haven't upgraded yet, which is particularly helpful on Windows where old
-# Python versions may linger.
-try:  # pragma: no cover - executed only on Python <3.11
-    import tomllib  # type: ignore
-except ModuleNotFoundError:  # pragma: no cover
-    try:
-        import tomli as tomllib  # type: ignore
-    except ModuleNotFoundError as exc:  # pragma: no cover
-        raise ModuleNotFoundError(
-            "tomllib is unavailable; install 'tomli' or upgrade to Python 3.11+"
-        ) from exc
+
 
 
 @dataclass
