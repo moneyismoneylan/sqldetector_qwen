@@ -108,9 +108,11 @@ async def test_client_configures_timeouts_and_limits(monkeypatch):
         pass
     timeout = captured["timeout"]
     limits = captured["limits"]
+    headers = captured["headers"]
     assert timeout.connect == 1
     assert timeout.read == 2
     assert timeout.write == 3
     assert timeout.pool == 4
     assert limits.max_connections == 10
     assert limits.max_keepalive_connections == 5
+    assert headers["User-Agent"] == "sqldetector/1.0"
