@@ -12,19 +12,49 @@ from .errors import RetryBudgetExceeded, TimeoutError, WAFBlocked
 from .config import Settings
 
 
+class AdaptiveSemaphore:
+    """Semaphore with a dynamically adjustable limit."""
+
+    def __init__(self, value: int):
+        self.limit = value
+        self._sem = asyncio.Semaphore(value)
+
+    async def acquire(self) -> None:
+        await self._sem.acquire()
+
+    def release(self) -> None:
+        self._sem.release()
+
+    def adjust(self, value: int) -> None:
+        if value > self.limit:
+            for _ in range(value - self.limit):
+                self._sem.release()
+        elif value < self.limit:
+            diff = self.limit - value
+            # decrease available tokens without blocking
+            self._sem._value = max(0, self._sem._value - diff)
+        self.limit = value
+
+
 class HttpClient:
     def __init__(self, settings: Settings):
         self.settings = settings
         self._client: httpx.AsyncClient | None = None
-        self._semaphores: Dict[str, asyncio.Semaphore] = defaultdict(
-            lambda: asyncio.Semaphore(settings.concurrency)
+        self._semaphores: Dict[str, AdaptiveSemaphore] = defaultdict(
+            lambda: AdaptiveSemaphore(settings.concurrency)
         )
+        self._host_latencies: Dict[str, deque[float]] = defaultdict(lambda: deque(maxlen=20))
+        self._host_avgs: Dict[str, float] = {}
         self._tokens = float(settings.rate_limit)
         self._last_refill = time.monotonic()
-        self._retry_budget = settings.retry_budget
+        self._retry_budget = {
+            "network": settings.retry_budget,
+            "server": settings.retry_budget,
+            "timeout": settings.retry_budget,
+        }
         self._failures = 0
         self._circuit_open_until = 0.0
-        self._latencies = deque(maxlen=100)
+        self._latencies = deque(maxlen=50)
 
     async def __aenter__(self) -> "HttpClient":
         timeout = httpx.Timeout(
@@ -42,6 +72,7 @@ class HttpClient:
             transport=self.settings.transport,
             timeout=timeout,
             limits=limits,
+            headers={"User-Agent": "sqldetector/1.0"},
         )
         return self
 
@@ -49,11 +80,11 @@ class HttpClient:
         if self._client:
             await self._client.aclose()
 
-    async def _acquire(self, url: str) -> asyncio.Semaphore:
+    async def _acquire(self, url: str) -> tuple[str, AdaptiveSemaphore]:
         host = httpx.URL(url).host or ""
         sem = self._semaphores[host]
         await sem.acquire()
-        return sem
+        return host, sem
 
     async def _rate_limit(self) -> None:
         now = time.monotonic()
@@ -68,31 +99,68 @@ class HttpClient:
 
     async def _request_once(self, method: str, url: str, **kwargs) -> httpx.Response:
         await self._rate_limit()
-        sem = await self._acquire(url)
+        host, sem = await self._acquire(url)
         try:
             assert self._client is not None
             start = time.monotonic()
             resp = await self._client.request(method, url, **kwargs)
-            self._latencies.append(time.monotonic() - start)
+            latency = time.monotonic() - start
+            self._latencies.append(latency)
+            self._host_latencies[host].append(latency)
+            self._adjust_concurrency(host)
             return resp
         except httpx.TimeoutException as exc:  # pragma: no cover - exercised in tests
             raise TimeoutError(str(exc)) from exc
         finally:
             sem.release()
 
+    def _adjust_concurrency(self, host: str) -> None:
+        latencies = self._host_latencies[host]
+        if len(latencies) < 2:
+            return
+        avg = sum(latencies) / len(latencies)
+        prev = self._host_avgs.get(host, avg)
+        self._host_avgs[host] = avg
+        sem = self._semaphores[host]
+        if avg > prev * 1.2:
+            sem.adjust(max(1, sem.limit // 2))
+        elif avg < prev * 0.8 and sem.limit < self.settings.concurrency:
+            sem.adjust(sem.limit + 1)
+
     async def _request_with_retries(self, method: str, url: str, **kwargs) -> httpx.Response:
         attempt = 0
         while True:
-            if self._retry_budget <= 0:
-                raise RetryBudgetExceeded("retry budget exhausted")
-            self._retry_budget -= 1
-            resp = await self._request_once(method, url, **kwargs)
+            try:
+                resp = await self._request_once(method, url, **kwargs)
+            except TimeoutError:
+                if self._retry_budget["timeout"] <= 0:
+                    raise RetryBudgetExceeded("timeout retry budget exhausted")
+                self._retry_budget["timeout"] -= 1
+                backoff = min(1, 0.1 * (2**attempt)) + random.uniform(0.1, 0.3)
+                attempt += 1
+                await asyncio.sleep(backoff)
+                continue
+            except httpx.RequestError as exc:
+                if self._retry_budget["network"] <= 0:
+                    raise RetryBudgetExceeded("network retry budget exhausted") from exc
+                self._retry_budget["network"] -= 1
+                backoff = min(1, 0.1 * (2**attempt)) + random.uniform(0.1, 0.3)
+                attempt += 1
+                await asyncio.sleep(backoff)
+                continue
+
+            if resp.status_code in (429, 403):
+                await asyncio.sleep(1.0)
+                continue
             if resp.status_code >= 500:
+                if self._retry_budget["server"] <= 0:
+                    raise RetryBudgetExceeded("server retry budget exhausted")
+                self._retry_budget["server"] -= 1
                 self._failures += 1
                 if self._failures >= 3:
                     self._circuit_open_until = time.monotonic() + 1.0
                     raise WAFBlocked("circuit open")
-                backoff = min(1, 0.1 * (2**attempt)) + random.random() * 0.05
+                backoff = min(1, 0.1 * (2**attempt)) + random.uniform(0.1, 0.3)
                 attempt += 1
                 await asyncio.sleep(backoff)
                 continue

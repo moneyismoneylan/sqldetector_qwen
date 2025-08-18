@@ -12,7 +12,6 @@ import tomllib
 @dataclass
 class Settings:
     safe_mode: bool = True
-    legal_ack: bool = False
     timeout_connect: float = 5.0
     timeout_read: float = 10.0
     timeout_write: float = 10.0
@@ -63,6 +62,4 @@ def merge_settings(cli_args: Namespace) -> Settings:
         data["log_json"] = True
     if getattr(cli_args, "log_level", None):
         data["log_level"] = cli_args.log_level
-    if getattr(cli_args, "legal_ack", False):
-        data["legal_ack"] = True
     return Settings(**data)
