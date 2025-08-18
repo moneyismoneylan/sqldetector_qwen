@@ -21,7 +21,7 @@ async def test_retry_succeeds():
         return httpx.Response(200, json={"ok": True})
 
     transport = httpx.MockTransport(handler)
-    settings = Settings(legal_ack=True, transport=transport)
+    settings = Settings(transport=transport)
     async with HttpClient(settings) as client:
         resp = await client.get("http://test/")
         assert resp.status_code == 200
@@ -34,7 +34,7 @@ async def test_retry_budget_exceeded():
         return httpx.Response(500)
 
     transport = httpx.MockTransport(handler)
-    settings = Settings(legal_ack=True, transport=transport, retry_budget=2)
+    settings = Settings(transport=transport, retry_budget=2)
     async with HttpClient(settings) as client:
         with pytest.raises(RetryBudgetExceeded):
             await client.get("http://test/")
@@ -50,7 +50,7 @@ async def test_circuit_breaker_opens():
         return httpx.Response(500)
 
     transport = httpx.MockTransport(handler)
-    settings = Settings(legal_ack=True, transport=transport, retry_budget=10)
+    settings = Settings(transport=transport, retry_budget=10)
     async with HttpClient(settings) as client:
         with pytest.raises(WAFBlocked):
             await client.get("http://test/")
@@ -73,7 +73,7 @@ async def test_hedged_request_returns_fastest():
         return httpx.Response(200, text="fast")
 
     transport = httpx.MockTransport(handler)
-    settings = Settings(legal_ack=True, transport=transport, hedge_delay=0.05)
+    settings = Settings(transport=transport, hedge_delay=0.05)
     async with HttpClient(settings) as client:
         resp = await client.get("http://test/")
         assert resp.text == "fast"
@@ -96,7 +96,6 @@ async def test_client_configures_timeouts_and_limits(monkeypatch):
 
     monkeypatch.setattr(httpx, "AsyncClient", DummyClient)
     settings = Settings(
-        legal_ack=True,
         timeout_connect=1,
         timeout_read=2,
         timeout_write=3,
