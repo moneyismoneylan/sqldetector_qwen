@@ -21,9 +21,9 @@ def randomize(payload: str, *, rng: random.Random | None = None) -> str:
     """
 
     if rng is None:
-        rng = random
+        rng = random  # module-level RNG da destekleniyor
 
-    transformed = ''.join(
+    transformed = "".join(
         c.upper() if c.isalpha() and rng.random() < 0.5 else c.lower() if c.isalpha() else c
         for c in payload
     )
@@ -35,6 +35,5 @@ def randomize(payload: str, *, rng: random.Random | None = None) -> str:
 
 def batch_randomize(payloads: Iterable[str], *, rng: random.Random | None = None) -> Iterable[str]:
     """Yield randomized variants for an iterable of payloads."""
-
     for p in payloads:
         yield randomize(p, rng=rng)

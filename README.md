@@ -16,10 +16,10 @@ pip install -e .
 `requirements.txt` lists optional legacy extras; the canonical dependency list lives in `pyproject.toml`.
 
 
-> **Note:** The project targets Python 3.11+ where the standard library includes
-> `tomllib` for reading TOML configuration.  If you are on an older Python
-> release, install [`tomli`](https://pypi.org/project/tomli/) to provide the same
-> functionality.
+> **Note:** The project targets Python 3.9+. On Python versions prior to
+> 3.11 the standard library lacks `tomllib`; the package
+> [`tomli`](https://pypi.org/project/tomli/) is used to provide equivalent TOML
+> parsing.
 
 ## Configuration
 

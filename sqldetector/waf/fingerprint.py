@@ -34,4 +34,3 @@ async def identify(url: str, client: httpx.AsyncClient | None = None) -> str:
     finally:
         if close_client:
             await client.aclose()
-

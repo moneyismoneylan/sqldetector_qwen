@@ -4,7 +4,7 @@ import asyncio
 import random
 import time
 from collections import defaultdict, deque
-from typing import Dict
+from typing import Dict  # Optional kaldırıldı
 
 import httpx
 

@@ -8,14 +8,15 @@ version = "0.1.0"
 description = "Modular SQL injection detector"
 authors = [{name = "AutoGen"}]
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.9"
 dependencies = [
     "httpx[http2]>=0.27",
     "anyio>=4.0",
     "lxml>=5.0",
     "xxhash>=3.4",
     "playwright>=1.45",
-    "rich>=13.7"
+    "rich>=13.7",
+    "tomli; python_version < '3.11'"
 ]
 
 [project.optional-dependencies]
@@ -51,11 +52,11 @@ py-modules = ["sqldetector_qwen"]
 
 [tool.black]
 line-length = 100
-target-version = ["py311"]
+target-version = ["py39"]
 
 [tool.ruff]
 line-length = 100
-target-version = "py311"
+target-version = "py39"
 
 [tool.pytest.ini_options]
 addopts = "-q"

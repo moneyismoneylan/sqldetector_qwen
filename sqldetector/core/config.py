@@ -5,8 +5,12 @@ import os
 from argparse import Namespace
 from dataclasses import dataclass, fields
 from pathlib import Path
-from typing import Any
-import tomllib
+from typing import Any, Optional, Union
+
+try:
+    import tomllib  # type: ignore
+except ModuleNotFoundError:  # pragma: no cover - Python < 3.11
+    import tomli as tomllib  # type: ignore
 
 
 @dataclass
@@ -23,12 +27,12 @@ class Settings:
     rate_limit: int = 5
     log_json: bool = False
     log_level: str = "INFO"
-    trace_dir: Path | None = None
+    trace_dir: Optional[Path] = None
     hedge_delay: float = 0.0
-    transport: Any | None = None
+    transport: Optional[Any] = None
 
 
-def load_config(path: str | Path) -> dict[str, Any]:
+def load_config(path: Union[str, Path]) -> dict[str, Any]:
     with open(path, "rb") as f:
         data = tomllib.load(f)
     return data

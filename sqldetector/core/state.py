@@ -5,6 +5,7 @@ import uuid
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
+from typing import Optional
 
 
 @dataclass
@@ -15,7 +16,7 @@ class RunState:
     trace_dir: Path
 
 
-def new_run(trace_dir: Path | None = None) -> RunState:
+def new_run(trace_dir: Optional[Path] = None) -> RunState:
     if trace_dir is None:
         trace_dir = Path("traces")
     trace_dir.mkdir(parents=True, exist_ok=True)
