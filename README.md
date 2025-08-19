@@ -16,10 +16,10 @@ pip install -e .
 `requirements.txt` lists optional legacy extras; the canonical dependency list lives in `pyproject.toml`.
 
 
-> **Note:** The project targets Python 3.11+ where the standard library includes
-> `tomllib` for reading TOML configuration.  If you are on an older Python
-> release, install [`tomli`](https://pypi.org/project/tomli/) to provide the same
-> functionality.
+> **Note:** The project targets Python 3.9+. On Python versions prior to
+> 3.11 the standard library lacks `tomllib`; the package
+> [`tomli`](https://pypi.org/project/tomli/) is used to provide equivalent TOML
+> parsing.
 
 ## Configuration
 
@@ -28,7 +28,6 @@ Create a TOML config and pass with `--config`:
 
 ```toml
 safe_mode = true
-legal_ack = true
 trace_dir = "traces"
 # HTTP client tuning
 timeout_connect = 5.0
@@ -41,12 +40,10 @@ max_keepalive_connections = 20
 
 Command line overrides are available, e.g. `--log-json --log-level DEBUG`.
 
-`--legal-ack` is required to acknowledge responsible use. The tool refuses to run without it.
-
 ## Usage
 
 ```bash
-sqldetector https://example.com/products --legal-ack --trace-dir traces
+sqldetector https://example.com/products --trace-dir traces
 ```
 
 Trace files are stored in the specified directory and can be used for reruns or auditing.

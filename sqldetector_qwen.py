@@ -16,12 +16,9 @@ def main(argv=None):
         choices=["DEBUG", "INFO", "WARNING", "ERROR"],
         help="Logging verbosity",
     )
-    parser.add_argument("--legal-ack", action="store_true", help="Acknowledge legal policy")
     args = parser.parse_args(argv)
 
     settings = merge_settings(args)
-    if not settings.legal_ack:
-        parser.error("Legal acknowledgement required (--legal-ack)")
 
     return pipeline.run(args.url, dry_run=args.dry_run, settings=settings)
 

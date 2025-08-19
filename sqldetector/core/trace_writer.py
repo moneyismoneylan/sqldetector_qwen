@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 
 class TraceWriter:
@@ -11,7 +11,7 @@ class TraceWriter:
         self.path = trace_dir / "trace.jsonl"
         self.path.parent.mkdir(parents=True, exist_ok=True)
 
-    def append_jsonl(self, event: Dict[str, Any], request_id: str | None = None) -> None:
+    def append_jsonl(self, event: Dict[str, Any], request_id: Optional[str] = None) -> None:
         payload = dict(event)
         payload["run_id"] = self.run_id
         if request_id:

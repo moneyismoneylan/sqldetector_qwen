@@ -12,13 +12,6 @@ def test_cli_invokes_pipeline(monkeypatch):
         return []
 
     monkeypatch.setattr(pipeline, "run", fake_run)
-    monkeypatch.setattr(sys, "argv", ["sqldetector_qwen.py", "http://example.com", "--legal-ack"])
+    monkeypatch.setattr(sys, "argv", ["sqldetector_qwen.py", "http://example.com"])
     main()
     assert called["url"] == "http://example.com"
-
-
-def test_cli_requires_legal_ack(monkeypatch):
-    monkeypatch.setattr(sys, "argv", ["sqldetector_qwen.py", "http://example.com"])
-    with pytest.raises(SystemExit) as exc:
-        main()
-    assert exc.value.code == 2

@@ -5,14 +5,17 @@ import os
 from argparse import Namespace
 from dataclasses import dataclass, fields
 from pathlib import Path
-from typing import Any
-import tomllib
+from typing import Any, Optional, Union
+
+try:
+    import tomllib  # type: ignore
+except ModuleNotFoundError:  # pragma: no cover - Python < 3.11
+    import tomli as tomllib  # type: ignore
 
 
 @dataclass
 class Settings:
     safe_mode: bool = True
-    legal_ack: bool = False
     timeout_connect: float = 5.0
     timeout_read: float = 10.0
     timeout_write: float = 10.0
@@ -24,12 +27,12 @@ class Settings:
     rate_limit: int = 5
     log_json: bool = False
     log_level: str = "INFO"
-    trace_dir: Path | None = None
+    trace_dir: Optional[Path] = None
     hedge_delay: float = 0.0
-    transport: Any | None = None
+    transport: Optional[Any] = None
 
 
-def load_config(path: str | Path) -> dict[str, Any]:
+def load_config(path: Union[str, Path]) -> dict[str, Any]:
     with open(path, "rb") as f:
         data = tomllib.load(f)
     return data
@@ -63,6 +66,4 @@ def merge_settings(cli_args: Namespace) -> Settings:
         data["log_json"] = True
     if getattr(cli_args, "log_level", None):
         data["log_level"] = cli_args.log_level
-    if getattr(cli_args, "legal_ack", False):
-        data["legal_ack"] = True
     return Settings(**data)
