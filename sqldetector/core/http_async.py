@@ -4,7 +4,7 @@ import asyncio
 import random
 import time
 from collections import defaultdict, deque
-from typing import Dict, Optional
+from typing import Dict  # Optional kaldırıldı
 
 import httpx
 
@@ -39,7 +39,7 @@ class AdaptiveSemaphore:
 class HttpClient:
     def __init__(self, settings: Settings):
         self.settings = settings
-        self._client: Optional[httpx.AsyncClient] = None
+        self._client: httpx.AsyncClient | None = None
         self._semaphores: Dict[str, AdaptiveSemaphore] = defaultdict(
             lambda: AdaptiveSemaphore(settings.concurrency)
         )

@@ -8,10 +8,9 @@ that looks for well known markers in the response headers or body.
 from __future__ import annotations
 
 import httpx
-from typing import Optional
 
 
-async def identify(url: str, client: Optional[httpx.AsyncClient] = None) -> str:
+async def identify(url: str, client: httpx.AsyncClient | None = None) -> str:
     """Return a simple WAF fingerprint for ``url``.
 
     The function performs a single HTTP ``GET`` request and inspects headers and
@@ -35,4 +34,3 @@ async def identify(url: str, client: Optional[httpx.AsyncClient] = None) -> str:
     finally:
         if close_client:
             await client.aclose()
-

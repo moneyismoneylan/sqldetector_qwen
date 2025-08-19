@@ -8,12 +8,12 @@ styles.
 from __future__ import annotations
 
 import random
-from typing import Iterable, Optional
+from typing import Iterable
 
 COMMENT_STYLES = ["--", "#", "/* */"]
 
 
-def randomize(payload: str, *, rng: Optional[random.Random] = None) -> str:
+def randomize(payload: str, *, rng: random.Random | None = None) -> str:
     """Return a randomized variant of ``payload``.
 
     Characters are randomly upper/lower cased and a comment style is appended at
@@ -21,9 +21,9 @@ def randomize(payload: str, *, rng: Optional[random.Random] = None) -> str:
     """
 
     if rng is None:
-        rng = random
+        rng = random  # module-level RNG da destekleniyor
 
-    transformed = ''.join(
+    transformed = "".join(
         c.upper() if c.isalpha() and rng.random() < 0.5 else c.lower() if c.isalpha() else c
         for c in payload
     )
@@ -33,8 +33,7 @@ def randomize(payload: str, *, rng: Optional[random.Random] = None) -> str:
     return f"{transformed}{comment}"
 
 
-def batch_randomize(payloads: Iterable[str], *, rng: Optional[random.Random] = None) -> Iterable[str]:
+def batch_randomize(payloads: Iterable[str], *, rng: random.Random | None = None) -> Iterable[str]:
     """Yield randomized variants for an iterable of payloads."""
-
     for p in payloads:
         yield randomize(p, rng=rng)
