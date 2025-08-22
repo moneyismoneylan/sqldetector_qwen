@@ -80,6 +80,24 @@ The detector ships with several tuning knobs and optimisations:
 9. Compact JSON tracing to minimise I/O
 10. Reuse of HTTP/2 connections for lower overhead
 
+### Optimisation guidelines
+
+To help tune the detector for large workloads the repository includes a few
+helper utilities:
+
+* `scripts/profile_fuzzer.py` – runs `cProfile` against the payload fuzzer and
+  prints the top hotspots.  Use this pattern to profile other modules and
+  locate bottlenecks.
+* `SQLFuzzer.generate_async` – an asynchronous payload generator that can be
+  interleaved with other I/O-bound tasks using `asyncio`.
+* `mysql_basic.hints` – wrapped with an ``lru_cache`` to avoid recomputing
+  repeated payload classifications.
+
+General SQL performance tips apply when integrating with a database: inspect
+`EXPLAIN ANALYZE` plans, ensure appropriate indexes exist and avoid `SELECT *`
+in favour of named columns.  Caching frequent results (e.g. via Redis) can
+further reduce database load.
+
 ### FAST preset (low-spec)
 
 For a fast, resource-friendly scan on constrained machines:

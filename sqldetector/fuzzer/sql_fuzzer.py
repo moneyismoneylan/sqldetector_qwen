@@ -7,7 +7,8 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Dict, Iterable, List
+from typing import AsyncIterator, Dict, Iterable, List
+import asyncio
 
 from sqldetector.filter.bloom import BloomFilter
 
@@ -32,3 +33,17 @@ class SQLFuzzer:
             if self.dedup.add(payload):
                 continue
             yield payload
+
+    async def generate_async(self, dialect: str, base: str) -> AsyncIterator[str]:
+        """Asynchronous variant of :meth:`generate`.
+
+        Using ``async`` allows callers to interleave payload generation with
+        other I/O-bound work.  The coroutine yields control back to the event
+        loop after each payload to keep the loop responsive.
+        """
+        for template in self.templates.get(dialect.lower(), []):
+            payload = base + template
+            if self.dedup.add(payload):
+                continue
+            yield payload
+            await asyncio.sleep(0)
