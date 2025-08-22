@@ -2,6 +2,7 @@ import asyncio
 
 import httpx
 import pytest
+import importlib.util
 from typing import Any
 
 from sqldetector.core.config import Settings
@@ -115,3 +116,9 @@ async def test_client_configures_timeouts_and_limits(monkeypatch):
     assert limits.max_connections == 10
     assert limits.max_keepalive_connections == 5
     assert headers["User-Agent"] == "sqldetector/1.0"
+    encs = {e.strip() for e in headers["Accept-Encoding"].split(",")}
+    assert "gzip" in encs
+    if importlib.util.find_spec("brotli"):
+        assert "br" in encs
+    if importlib.util.find_spec("zstandard"):
+        assert "zstd" in encs

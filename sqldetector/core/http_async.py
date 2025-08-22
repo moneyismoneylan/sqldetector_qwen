@@ -84,10 +84,23 @@ class HttpClient:
             verify = truststore.SSLContext()
         else:
             verify = certifi.where()
-        ae = "gzip" if self.settings.advanced.get("preset") == "stealth" else "br, gzip, zstd"
+        encodings = ["gzip"]
+        if self.settings.advanced.get("preset") != "stealth":
+            try:  # pragma: no cover - optional dependency
+                import brotli  # type: ignore
+
+                encodings.insert(0, "br")
+            except Exception:  # pragma: no cover - brotli not installed
+                pass
+            try:  # pragma: no cover - optional dependency
+                import zstandard  # type: ignore
+
+                encodings.append("zstd")
+            except Exception:  # pragma: no cover - zstandard not installed
+                pass
         headers = {
             "User-Agent": "sqldetector/1.0",
-            "Accept-Encoding": ae,
+            "Accept-Encoding": ", ".join(encodings),
         }
         transport = self.settings.transport
         if self.settings.http_cache_enabled:

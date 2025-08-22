@@ -49,7 +49,7 @@ class Settings:
     dns_warmup_batch: int = 8
     prewarm_connections: bool = False
     happy_eyeballs: bool = False
-    range_fetch_kb: int = 64
+    range_fetch_kb: int = 0
     http_cache_enabled: bool = False
     respect_robots: bool = True
     simhash_enabled: bool = False
