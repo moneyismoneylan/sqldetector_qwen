@@ -11,15 +11,15 @@ venv\Scripts\activate
 # Unix
 source venv/bin/activate
 pip install -e .
+
+# opt‑in extras
+pip install -e .[perf]     # http/2, compression, Bloom filters
+pip install -e .[waf]      # cloudscraper fallback
+pip install -e .[metrics]  # Prometheus /metrics endpoint
+pip install -e .[headless] # Playwright one‑off fetches
 ```
 
 `requirements.txt` lists optional legacy extras; the canonical dependency list lives in `pyproject.toml`.
-
-Optional performance extras:
-
-```bash
-pip install "httpx[http2,brotli,zstd]" truststore
-```
 
 
 > **Note:** The project targets Python 3.9+. On Python versions prior to

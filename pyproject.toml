@@ -65,6 +65,25 @@ tls = [
     "truststore; python_version >= '3.10'",
 ]
 
+perf = [
+    "httpx[http2,brotli]",
+    "zstandard",
+    "truststore; python_version >= '3.10'",
+    "bitarray",
+    "xxhash",
+    "msgspec",
+    "boilerpy3",
+]
+waf = [
+    "cloudscraper",
+]
+metrics = [
+    "prometheus-client",
+]
+headless = [
+    "playwright",
+]
+
 [project.scripts]
 sqldetector = "sqldetector_qwen:main"
 
