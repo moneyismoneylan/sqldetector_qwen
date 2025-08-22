@@ -1,13 +1,15 @@
 import argparse
 import sys
+from urllib.parse import urlparse
 
 from sqldetector.planner import pipeline
 from sqldetector.core.config import Settings, merge_settings
 from sqldetector.presets import (
-    apply_system_aware_overrides,
     load_preset,
-    merge_config as merge_dicts,
+    deep_merge as merge_dicts,
+    apply_system_overrides,
 )
+from sqldetector.autopilot import selector, policy, system as autosys, store
 
 
 def main(argv=None):
@@ -16,9 +18,16 @@ def main(argv=None):
     parser.add_argument("--dry-run", action="store_true", help="Run pipeline without network calls")
     parser.add_argument("--config", type=str, help="Path to TOML configuration file")
     parser.add_argument("--trace-dir", type=str, help="Directory to store trace logs")
-    parser.add_argument("--preset", choices=["fast"], help="Use built-in preset")
     parser.add_argument(
-        "--stop-after-first-finding", action="store_true", help="Exit on first finding"
+        "--preset",
+        choices=["fast","stealth","api","spa","forms","crawler","budget-ci"],
+        help="Use built-in preset",
+    )
+    parser.add_argument("--auto", action="store_true", help="Enable AutoPilot mode")
+    parser.add_argument("--print-plan", action="store_true", help="Print AutoPilot plan and exit if --dry-run")
+    parser.add_argument("--force-preset", type=str, help="Force preset name in AutoPilot mode")
+    parser.add_argument(
+        "--stop-after-first-finding", action="store_true", help="Exit on first finding",
     )
     parser.add_argument("--max-forms-per-page", type=int)
     parser.add_argument("--max-tests-per-form", type=int)
@@ -48,12 +57,48 @@ def main(argv=None):
     args = parser.parse_args(argv)
 
     settings = merge_settings(args)
+    cfg = settings.__dict__
 
     if args.preset:
         preset_cfg = load_preset(args.preset).get("sqldetector", {})
-        settings = Settings(**merge_dicts(settings.__dict__, preset_cfg))
+        cfg = merge_dicts(preset_cfg, cfg)
 
-    settings = Settings(**apply_system_aware_overrides(settings.__dict__))
+    if args.auto:
+        sysinfo = autosys.detect_system()
+        domain = urlparse(args.url).hostname or args.url
+        client = None
+        try:
+            import requests  # type: ignore
+
+            client = requests.Session()
+        except Exception:
+            pass
+        if client is None:
+            print("AutoPilot requires the requests package", file=sys.stderr)
+            return 1
+        try:
+            profile = selector.classify_target(args.url, client, sysinfo)
+        except Exception:
+            print("AutoPilot: unable to reach target", file=sys.stderr)
+            return 1
+        preset_name = args.force_preset or policy.choose_preset(profile)
+        preset_cfg = load_preset(preset_name).get("sqldetector", {})
+        cfg = merge_dicts(preset_cfg, cfg)
+        cfg = apply_system_overrides(cfg, sysinfo, profile.get("rtt_ms"))
+        store.save(domain, profile, preset_name)
+        if args.print_plan:
+            print(f"AutoPilot selected: {preset_name} (signals: {profile['signals']})")
+            if args.dry_run:
+                return 0
+        settings = Settings(**cfg)
+        print(
+            f"AutoPilot selected: {preset_name} (signals: {profile['signals']})",
+            file=sys.stderr,
+        )
+    else:
+        sysinfo = autosys.detect_system()
+        cfg = apply_system_overrides(cfg, sysinfo, None)
+        settings = Settings(**cfg)
 
     if sys.platform != "win32":  # pragma: no cover - best effort
         try:

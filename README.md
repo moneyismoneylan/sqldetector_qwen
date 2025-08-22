@@ -134,3 +134,20 @@ sqldetector_qwen.py ─▶ planner.pipeline.run()
                           ├── auth/
                           └── report/
 ```
+
+## AutoPilot
+
+AutoPilot mode performs a lightweight reconnaissance pass to classify the
+remote site and pick a suitable preset automatically. Existing manual
+knobs and config files still apply and always take precedence over
+AutoPilot suggestions.
+
+```bash
+python sqldetector_qwen.py --auto --print-plan https://target.example
+```
+
+The selector looks at headers, response types and simple HTML heuristics
+to detect APIs, SPAs, form-heavy sites and WAF guarded targets. It then
+maps the profile to one of the presets such as `fast`, `stealth`,
+`api`, `spa`, `forms`, `crawler` or `budget-ci`.  Use `--force-preset` to
+override the decision.
