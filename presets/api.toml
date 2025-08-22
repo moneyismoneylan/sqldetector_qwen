@@ -1,0 +1,12 @@
+[sqldetector]
+stop_after_first_finding = false
+max_connections = 20
+max_keepalive_connections = 10
+timeout_connect = 5.0
+timeout_read    = 10.0
+max_pages = 40
+max_forms_per_page = 1
+max_tests_per_form = 1
+max_body_kb = 256
+skip_binary_ext = ["jpg","jpeg","png","gif","webp","svg","ico","pdf","zip","gz","rar","7z","mp4","mp3","woff","woff2"]
+use_llm = "auto"
