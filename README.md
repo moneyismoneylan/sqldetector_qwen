@@ -95,6 +95,18 @@ Configuration keys introduced with this preset include:
 The fast pipeline performs an ultra-cheap keyword prefilter and maintains a
 fingerprint database to skip heavy tests for unchanged pages.
 
+### TURBO preset (high-spec)
+
+When ample resources are available the `turbo` preset enables an aggressive
+yet controlled scan:
+
+```
+sqldetector https://target --preset turbo
+```
+
+It expands connection pools, keeps hedging enabled and raises discovery and
+test limits while still honouring system-aware clamps.
+
 ## SMART mode
 
 An opinionated professional pipeline can be enabled with `--smart`.  It adds
@@ -178,6 +190,6 @@ python sqldetector_qwen.py --auto --print-plan https://target.example
 
 The selector looks at headers, response types and simple HTML heuristics
 to detect APIs, SPAs, form-heavy sites and WAF guarded targets. It then
-maps the profile to one of the presets such as `fast`, `stealth`,
-`api`, `spa`, `forms`, `crawler` or `budget-ci`.  Use `--force-preset` to
-override the decision.
+ maps the profile to one of the presets such as `fast`, `stealth`,
+ `api`, `spa`, `forms`, `crawler`, `budget-ci` or `turbo`.  Use
+ `--force-preset` to override the decision.

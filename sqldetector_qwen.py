@@ -20,7 +20,7 @@ def main(argv=None):
     parser.add_argument("--trace-dir", type=str, help="Directory to store trace logs")
     parser.add_argument(
         "--preset",
-        choices=["fast","stealth","api","spa","forms","crawler","budget-ci"],
+        choices=["fast","stealth","api","spa","forms","crawler","budget-ci","turbo"],
         help="Use built-in preset",
     )
     parser.add_argument("--auto", action="store_true", help="Enable AutoPilot mode")

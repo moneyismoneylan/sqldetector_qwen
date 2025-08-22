@@ -1,0 +1,18 @@
+[sqldetector]
+stop_after_first_finding = false
+# Aggressive but controlled settings for high-spec environments
+max_connections = 100
+max_keepalive_connections = 50
+timeout_connect = 3.0
+timeout_read    = 6.0
+timeout_write   = 6.0
+timeout_pool    = 3.0
+hedge_enabled = true
+hedge_delay_ms = 75
+retry_budget = { total = 5, per_host = 3 }
+max_pages = 1000
+max_forms_per_page = 8
+max_tests_per_form = 5
+max_body_kb = 4096
+skip_binary_ext = ["jpg","jpeg","png","gif","webp","svg","ico","pdf","zip","gz","rar","7z","mp4","mp3","woff","woff2"]
+use_llm = "auto"

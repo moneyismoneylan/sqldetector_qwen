@@ -33,3 +33,11 @@ def test_forms_classification():
     profile = classify_target("http://example", client, {"cores": 4, "ram_gb": 8})
     assert profile["kind"] == "forms-heavy"
     assert policy.choose_preset(profile) == "forms"
+
+
+def test_heavy_site_classification():
+    body = "<html>" + "<form></form>" * 10 + "</html>"
+    client = DummyClient({"Content-Type": "text/html"}, body)
+    profile = classify_target("http://example", client, {"cores": 4, "ram_gb": 8})
+    assert profile["kind"] == "heavy-site"
+    assert policy.choose_preset(profile) == "turbo"
