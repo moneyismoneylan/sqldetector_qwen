@@ -95,6 +95,20 @@ Configuration keys introduced with this preset include:
 The fast pipeline performs an ultra-cheap keyword prefilter and maintains a
 fingerprint database to skip heavy tests for unchanged pages.
 
+## SMART mode
+
+An opinionated professional pipeline can be enabled with `--smart`.  It adds
+runtime narration, signal fusion and clean reporting while keeping default
+behaviour unchanged.
+
+```
+sqldetector --smart --autopilot https://target --report all
+```
+
+On first run a one line consent notice is printed.  Individual features can be
+enabled with dedicated flags such as `--poc` for explainable proof of concepts
+or `--waf-adapt` for adaptive WAF handling.
+
 ## Turbo knobs
 
 Advanced users can enable additional performance features via command line
