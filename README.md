@@ -15,6 +15,12 @@ pip install -e .
 
 `requirements.txt` lists optional legacy extras; the canonical dependency list lives in `pyproject.toml`.
 
+Optional performance extras:
+
+```bash
+pip install "httpx[http2,brotli,zstd]" truststore
+```
+
 
 > **Note:** The project targets Python 3.9+. On Python versions prior to
 > 3.11 the standard library lacks `tomllib`; the package
@@ -91,6 +97,7 @@ Configuration keys introduced with this preset include:
 * `use_llm` (`auto`/`always`/`never`)
 * `llm_cache_path`, `llm_cache_ttl_hours`
 * `fingerprint_db`
+* `hedge_max_ratio`, `http_cache_enabled`, `range_fetch_kb`
 
 The fast pipeline performs an ultra-cheap keyword prefilter and maintains a
 fingerprint database to skip heavy tests for unchanged pages.
@@ -106,6 +113,22 @@ sqldetector https://target --preset turbo
 
 It expands connection pools, keeps hedging enabled and raises discovery and
 test limits while still honouring system-aware clamps.
+
+Configuration additions:
+
+* `hedge_max_ratio`, `http_cache_enabled`, `range_fetch_kb`
+
+### STEALTH preset
+
+Designed to minimise fingerprints and bandwidth.
+
+```
+sqldetector https://target --preset stealth
+```
+
+It trims concurrency and user-agent hints for quieter probing.
+
+* `hedge_max_ratio`, `http_cache_enabled`, `range_fetch_kb`
 
 ## SMART mode
 

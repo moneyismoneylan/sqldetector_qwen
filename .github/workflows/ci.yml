@@ -15,16 +15,17 @@ jobs:
           path: ~/.cache/pip
           key: \
             ${{ runner.os }}-pip-${{ hashFiles('pyproject.toml') }}
-      - run: pip install ruff black
+      - run: pip install ruff black mypy
       - run: ruff .
       - run: black --check .
+      - run: mypy sqldetector
 
   tests:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest]
-        python: ['3.11', '3.12']
+        python: ['3.9', '3.10', '3.11', '3.12']
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
@@ -37,3 +38,21 @@ jobs:
             ${{ runner.os }}-pip-${{ hashFiles('pyproject.toml') }}
       - run: pip install -e .[test]
       - run: pytest -q
+
+  smoke-bench:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - run: pip install -e .[test]
+      - run: timeout 30s python - <<'PY'
+import json, time
+time.sleep(1)
+open('metrics.json','w').write(json.dumps({'requests_total':0}))
+PY
+      - uses: actions/upload-artifact@v3
+        with:
+          name: bench-metrics
+          path: metrics.json
