@@ -45,6 +45,8 @@ def main(argv=None):
     parser.add_argument("--prewarm", action="store_true", help="Pre-warm HTTP connections")
     parser.add_argument("--happy-eyeballs", action="store_true", help="Enable Happy Eyeballs dialer")
     parser.add_argument("--range-fetch-kb", type=int, help="Partial body fetch size in KB")
+    parser.add_argument("--http-cache", action="store_true", help="Enable HTTP cache")
+    parser.add_argument("--ignore-robots", action="store_true", help="Ignore robots.txt directives")
     parser.add_argument("--simhash", action="store_true", help="Enable simhash dedupe")
     parser.add_argument("--near-dup-th", type=int, dest="near_dup_th", help="Simhash Hamming distance threshold")
     parser.add_argument("--form-dedupe", action="store_true", help="Enable form schema dedupe")
@@ -189,6 +191,7 @@ def main(argv=None):
     if args.preset:
         preset_cfg = load_preset(args.preset).get("sqldetector", {})
         cfg = merge_dicts(preset_cfg, cfg)
+        cfg.setdefault("advanced", {})["preset"] = args.preset
 
     if args.auto:
         sysinfo = autosys.detect_system()
@@ -211,6 +214,7 @@ def main(argv=None):
         preset_name = args.force_preset or policy.choose_preset(profile)
         preset_cfg = load_preset(preset_name).get("sqldetector", {})
         cfg = merge_dicts(preset_cfg, cfg)
+        cfg.setdefault("advanced", {})["preset"] = preset_name
         cfg = apply_system_overrides(cfg, sysinfo, profile.get("rtt_ms"))
         store.save(domain, profile, preset_name)
         if args.print_plan:

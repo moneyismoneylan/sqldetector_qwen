@@ -31,3 +31,6 @@ fingerprint_db = "cache/fingerprints.sqlite"
 # Hedging policy in FAST
 hedge_enabled = false
 hedge_delay_ms = 100
+hedge_max_ratio = 0.05
+http_cache_enabled = false
+range_fetch_kb = 32

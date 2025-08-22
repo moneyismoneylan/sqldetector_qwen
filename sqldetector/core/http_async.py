@@ -64,7 +64,9 @@ class HttpClient:
         }
         self._failures = 0
         self._circuit_open_until = 0.0
-        self._latencies = deque(maxlen=50)
+        self._latencies: deque[float] = deque(maxlen=50)
+        self._hedge_counts: Dict[str, int] = defaultdict(int)
+        self._req_counts: Dict[str, int] = defaultdict(int)
 
     async def __aenter__(self) -> "HttpClient":
         timeout = httpx.Timeout(
@@ -82,13 +84,20 @@ class HttpClient:
             verify = truststore.SSLContext()
         else:
             verify = certifi.where()
+        ae = "gzip" if self.settings.advanced.get("preset") == "stealth" else "br, gzip, zstd"
         headers = {
             "User-Agent": "sqldetector/1.0",
-            "Accept-Encoding": "br, gzip, zstd",
+            "Accept-Encoding": ae,
         }
+        transport = self.settings.transport
+        if self.settings.http_cache_enabled:
+            from .cache_transport import CacheTransport
+
+            transport = CacheTransport(transport)
+
         self._client = httpx.AsyncClient(
             http2=True,
-            transport=self.settings.transport,
+            transport=transport,
             timeout=timeout,
             limits=limits,
             headers=headers,
@@ -208,9 +217,33 @@ class HttpClient:
     async def request(self, method: str, url: str, **kwargs) -> httpx.Response:
         if time.monotonic() < self._circuit_open_until:
             raise WAFBlocked("circuit open")
-        if self.settings.hedge_delay > 0 or len(self._latencies) >= 5:
+        host = httpx.URL(url).host or ""
+        self._req_counts[host] += 1
+        ratio = self._hedge_counts[host] / max(1, self._req_counts[host])
+        if (self.settings.hedge_delay > 0 or len(self._latencies) >= 5) and (
+            ratio < self.settings.hedge_max_ratio
+        ):
+            self._hedge_counts[host] += 1
             return await self._hedged_request(method, url, **kwargs)
         return await self._request_with_retries(method, url, **kwargs)
 
     async def get(self, url: str, **kwargs) -> httpx.Response:
+        if self.settings.range_fetch_kb > 0:
+            headers = dict(kwargs.get("headers", {}))
+            if "Range" not in headers:
+                end = self.settings.range_fetch_kb * 1024 - 1
+                headers["Range"] = f"bytes=0-{end}"
+            kwargs["headers"] = headers
+            resp = await self.request("GET", url, **kwargs)
+            ctype = resp.headers.get("Content-Type", "").split(";")[0]
+            if resp.status_code == 206 and resp.headers.get("Accept-Ranges") and ctype in {
+                "text/html",
+                "application/json",
+                "text/xml",
+                "application/xml",
+            }:
+                return resp
+            headers.pop("Range", None)
+            kwargs["headers"] = headers
+            return await self.request("GET", url, **kwargs)
         return await self.request("GET", url, **kwargs)

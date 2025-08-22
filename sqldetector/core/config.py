@@ -29,6 +29,7 @@ class Settings:
     log_level: str = "INFO"
     trace_dir: Optional[Path] = None
     hedge_delay: float = 0.0
+    hedge_max_ratio: float = 0.1
     transport: Optional[Any] = None
     trace_sample_rate: float = 1.0
     trace_compress: Optional[str] = None
@@ -49,6 +50,8 @@ class Settings:
     prewarm_connections: bool = False
     happy_eyeballs: bool = False
     range_fetch_kb: int = 64
+    http_cache_enabled: bool = False
+    respect_robots: bool = True
     simhash_enabled: bool = False
     near_duplicate_threshold: int = 6
     form_dedupe_enabled: bool = False
@@ -123,6 +126,10 @@ def merge_settings(cli_args: Namespace) -> Settings:
         data["happy_eyeballs"] = True
     if getattr(cli_args, "range_fetch_kb", None) is not None:
         data["range_fetch_kb"] = cli_args.range_fetch_kb
+    if getattr(cli_args, "http_cache", False):
+        data["http_cache_enabled"] = True
+    if getattr(cli_args, "ignore_robots", False):
+        data["respect_robots"] = False
     if getattr(cli_args, "simhash", False):
         data["simhash_enabled"] = True
     if getattr(cli_args, "near_dup_th", None) is not None:

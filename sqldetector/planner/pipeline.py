@@ -4,6 +4,8 @@ import asyncio
 from pathlib import Path
 from typing import Callable, List, Optional
 
+import httpx
+
 from sqldetector.core.config import Settings
 from sqldetector.core.errors import WAFBlocked
 from sqldetector.core.http_async import HttpClient
@@ -54,6 +56,16 @@ def run(
         )
         trace.append_jsonl({"event": "pipeline_start", "url": url})
         async with HttpClient(settings) as client:
+            from sqldetector.net.dns_cache import DNSCache
+
+            host = httpx.URL(url).host or ""
+            dns = DNSCache(settings.dns_cache_ttl_sec)
+            await dns.warmup([host], settings.dns_warmup_batch)
+            if settings.prewarm_connections:
+                try:
+                    await client.get(str(httpx.URL(url).copy_with(path="/robots.txt")), timeout=1.0)
+                except Exception:
+                    pass
             try:
                 resp = await client.get(url)
                 status = resp.status_code

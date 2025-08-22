@@ -51,11 +51,13 @@ class DNSCache:
     # --------------------------------------------------------------
     async def resolve(self, host: str) -> List[str]:
         now = time.time()
+        for h, (ts, _) in list(self.cache.items()):
+            if now - ts >= self.ttl:
+                self.cache.pop(h, None)
         if host in self.cache and now - self.cache[host][0] < self.ttl:
-            ts, addrs = self.cache.pop(host)
-            # mark as recently used
-            self.cache[host] = (ts, addrs)
-            return list(addrs)
+            ts, cached = self.cache.pop(host)
+            self.cache[host] = (ts, cached)
+            return list(cached)
 
         addrs: List[str] = []
         if aiodns is not None:

@@ -14,3 +14,6 @@ max_tests_per_form = 1
 max_body_kb = 512
 skip_binary_ext = ["jpg","jpeg","png","gif","webp","svg","ico","pdf","zip","gz","rar","7z","mp4","mp3","woff","woff2"]
 use_llm = "auto"
+hedge_max_ratio = 0.05
+http_cache_enabled = true
+range_fetch_kb = 32

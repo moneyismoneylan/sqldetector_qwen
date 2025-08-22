@@ -1,6 +1,8 @@
 cloudscraper
 beautifulsoup4
 llama-cpp-python==0.2.68
+httpx[http2,brotli,zstd]
+truststore; python_version>="3.10"
 # optional deps for fast preset
 # zstandard
 # xxhash
