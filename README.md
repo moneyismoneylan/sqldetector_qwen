@@ -13,10 +13,13 @@ source venv/bin/activate
 pip install -e .
 
 # opt‑in extras
-pip install -e .[perf]     # http/2, compression, Bloom filters
-pip install -e .[waf]      # cloudscraper fallback
-pip install -e .[metrics]  # Prometheus /metrics endpoint
-pip install -e .[headless] # Playwright one‑off fetches
+pip install -e .[perf]      # HTTP/2 + compression
+pip install -e .[ssl]       # system trust store
+pip install -e .[metrics]   # Prometheus /metrics endpoint
+pip install -e .[fastdiff]  # faster diffing helpers
+pip install -e .[headless]  # Playwright one‑off fetches
+pip install -e .[bloom]     # persistent Bloom filters
+pip install -e .[waf]       # cloudscraper fallback
 ```
 
 `requirements.txt` lists optional legacy extras; the canonical dependency list lives in `pyproject.toml`.
