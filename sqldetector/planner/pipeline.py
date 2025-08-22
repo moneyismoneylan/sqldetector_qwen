@@ -26,13 +26,6 @@ def run(
     state = new_run(settings.trace_dir or Path("traces"))
     if settings.log_json:
         setup_json_logging(settings.log_level, state.run_id)
-    trace = TraceWriter(
-        state.run_id,
-        state.trace_dir,
-        getattr(settings, "trace_sample_rate", 1.0),
-        getattr(settings, "trace_compress", None),
-    )
-    trace.append_jsonl({"event": "pipeline_start", "url": url})
 
     if progress:
         progress(0.0)
@@ -51,7 +44,15 @@ def run(
             progress(100.0)
         narrator.ok("Micro tarama tamamlandı")
         return result
+
     async def _run() -> List[dict]:
+        trace = TraceWriter(
+            state.run_id,
+            state.trace_dir,
+            getattr(settings, "trace_sample_rate", 1.0),
+            getattr(settings, "trace_compress", None),
+        )
+        trace.append_jsonl({"event": "pipeline_start", "url": url})
         async with HttpClient(settings) as client:
             try:
                 resp = await client.get(url)
@@ -68,6 +69,7 @@ def run(
             if progress:
                 progress(100.0)
             trace.append_jsonl({"event": "request", "status": status})
+            await trace.aclose()
             return [{"status": status}]
 
     result = asyncio.run(_run())

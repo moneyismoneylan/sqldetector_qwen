@@ -41,6 +41,7 @@ def main(argv=None):
     )
     parser.add_argument("--bandit", choices=["off", "ucb1", "thompson"], help="Payload bandit algorithm")
     parser.add_argument("--dns-cache-ttl", type=int, dest="dns_cache_ttl", help="DNS cache TTL seconds")
+    parser.add_argument("--dns-warmup-batch", type=int, dest="dns_warmup_batch", help="DNS warmup batch size")
     parser.add_argument("--prewarm", action="store_true", help="Pre-warm HTTP connections")
     parser.add_argument("--happy-eyeballs", action="store_true", help="Enable Happy Eyeballs dialer")
     parser.add_argument("--range-fetch-kb", type=int, help="Partial body fetch size in KB")
@@ -118,7 +119,18 @@ def main(argv=None):
     parser.add_argument("--csv-import", action="store_true", help="CSV upload SQLi tests")
     parser.add_argument("--micro", action="store_true", help="Single-thread tiny payload core")
 
+    parser.add_argument("--no-uvloop", action="store_true", help="Disable uvloop event loop")
+
     args = parser.parse_args(argv)
+
+    # install uvloop for better performance on POSIX unless disabled
+    if not args.no_uvloop and sys.platform != "win32":  # pragma: no cover - platform specific
+        try:
+            import uvloop  # type: ignore
+
+            uvloop.install()  # type: ignore
+        except Exception:
+            pass
 
     if args.autopilot:
         args.auto = True

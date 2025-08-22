@@ -6,9 +6,10 @@ import asyncio
 import json
 import socket
 import time
+from collections import OrderedDict
 from functools import lru_cache
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, Iterable, List, Tuple
 
 CACHE_PATH = Path("cache/dns.json")
 
@@ -19,9 +20,12 @@ except Exception:  # pragma: no cover
 
 
 class DNSCache:
-    def __init__(self, ttl: int = 900) -> None:
+    """Simple TTL-aware LRU cache fronting asyncio DNS calls."""
+
+    def __init__(self, ttl: int = 900, max_size: int = 1024) -> None:
         self.ttl = ttl
-        self.cache: Dict[str, Tuple[float, List[str]]] = {}
+        self.max_size = max_size
+        self.cache: "OrderedDict[str, Tuple[float, List[str]]]" = OrderedDict()
         self._load()
 
     # --------------------------------------------------------------
@@ -48,7 +52,10 @@ class DNSCache:
     async def resolve(self, host: str) -> List[str]:
         now = time.time()
         if host in self.cache and now - self.cache[host][0] < self.ttl:
-            return list(self.cache[host][1])
+            ts, addrs = self.cache.pop(host)
+            # mark as recently used
+            self.cache[host] = (ts, addrs)
+            return list(addrs)
 
         addrs: List[str] = []
         if aiodns is not None:
@@ -66,8 +73,25 @@ class DNSCache:
             except socket.gaierror:
                 addrs = []
         self.cache[host] = (now, addrs)
+        self.cache.move_to_end(host)
+        if len(self.cache) > self.max_size:
+            self.cache.popitem(last=False)
         self._save()
         return addrs
+
+    async def warmup(self, hosts: Iterable[str], batch: int = 8) -> None:
+        """Pre-resolve a batch of hosts concurrently."""
+        it = iter(hosts)
+        while True:
+            chunk = list()
+            try:
+                for _ in range(batch):
+                    chunk.append(next(it))
+            except StopIteration:
+                pass
+            if not chunk:
+                break
+            await asyncio.gather(*(self.resolve(h) for h in chunk))
 
     # synchronous fallback for libraries expecting getaddrinfo
     @lru_cache(maxsize=256)
