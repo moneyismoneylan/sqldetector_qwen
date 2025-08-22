@@ -48,6 +48,29 @@ sqldetector https://example.com/products --trace-dir traces
 
 Trace files are stored in the specified directory and can be used for reruns or auditing.
 
+### Progress and WAF handling
+
+`pipeline.run` accepts an optional `progress` callback that receives completion
+percentages.  This can be used to display progress bars or estimate remaining
+time for a scan.  When the internal HTTP client detects Cloudflare-style WAF
+blocking it automatically falls back to a `cloudscraper` session to retry the
+request.
+
+### Performance features
+
+The detector ships with several tuning knobs and optimisations:
+
+1. Adaptive per-host concurrency limits
+2. Token bucket rate limiting
+3. Dynamic hedge requests to reduce tail latency
+4. Circuit breaker on repeated failures
+5. Retry budget controls for network/server errors
+6. P95-based hedging delay calculation
+7. Progress callbacks for responsive UIs
+8. `cloudscraper` fallback for WAF evasion
+9. Compact JSON tracing to minimise I/O
+10. Reuse of HTTP/2 connections for lower overhead
+
 ## Architecture
 
 ```
