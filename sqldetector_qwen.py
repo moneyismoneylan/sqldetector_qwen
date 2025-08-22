@@ -24,6 +24,7 @@ def main(argv=None):
         help="Use built-in preset",
     )
     parser.add_argument("--auto", action="store_true", help="Enable AutoPilot mode")
+    parser.add_argument("--autopilot", action="store_true", help="Alias for --auto")
     parser.add_argument("--print-plan", action="store_true", help="Print AutoPilot plan and exit if --dry-run")
     parser.add_argument("--force-preset", type=str, help="Force preset name in AutoPilot mode")
     parser.add_argument(
@@ -54,7 +55,42 @@ def main(argv=None):
     parser.add_argument("--cpu-target-pct", type=int, help="CPU usage target percentage")
     parser.add_argument("--cpu-pacer-min-rps", type=int, help="Minimum pacer rate")
     parser.add_argument("--cpu-pacer-max-rps", type=int, help="Maximum pacer rate")
+
+    # SMART mode flags (opt-in)
+    parser.add_argument("--smart", action="store_true", help="Enable SMART mode")
+    parser.add_argument("--poc", action="store_true", help="Generate explainable PoC artifacts")
+    parser.add_argument("--fusion", action="store_true", help="Enable signal fusion")
+    parser.add_argument("--waf-adapt", action="store_true", help="Enable WAF-adaptive engine")
+    parser.add_argument("--oob", action="store_true", help="Enable out-of-band checks")
+    parser.add_argument("--xhr-map", action="store_true", help="Map client-side XHR/fetch flows")
+    parser.add_argument("--dbms-fp", action="store_true", help="DBMS fingerprinting and robust timing")
+    parser.add_argument("--flow-sm", action="store_true", help="Multi-step flow state machine")
+    parser.add_argument("--dedupe-adv", action="store_true", help="Advanced SimHash/FormSig++ dedupe")
+    parser.add_argument("--kg", action="store_true", help="Endpoint-param knowledge graph")
+    parser.add_argument("--remediate", action="store_true", help="Developer remediation tips")
+    parser.add_argument("--lang", choices=["tr", "en"], default="tr", help="Narration language")
+    parser.add_argument("--report", choices=["json", "html", "all"], default="all", help="Report format")
+    parser.add_argument("--no-consent", action="store_true", help="Skip SMART mode consent notice")
+    parser.add_argument("--unsafe-artifacts", action="store_true", help="Do not redact secrets in PoC artifacts")
+
     args = parser.parse_args(argv)
+
+    if args.autopilot:
+        args.auto = True
+
+    if args.smart and not args.no_consent:
+        from pathlib import Path
+
+        consent_file = Path.home() / ".sqldetector_smart_consent"
+        if not consent_file.exists():
+            print("Bu aracı yalnızca yetkili testlerde kullanın.")
+            consent_file.write_text("ok")
+
+    if args.smart:
+        from sqldetector.ui.narrate import Narrator
+
+        narrator = Narrator(lang=args.lang)
+        narrator.step("Hedef profili çıkarılıyor…")
 
     settings = merge_settings(args)
     cfg = settings.__dict__
