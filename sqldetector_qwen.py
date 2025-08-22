@@ -29,6 +29,22 @@ def main(argv=None):
         choices=["DEBUG", "INFO", "WARNING", "ERROR"],
         help="Logging verbosity",
     )
+    parser.add_argument("--bandit", choices=["off", "ucb1", "thompson"], help="Payload bandit algorithm")
+    parser.add_argument("--dns-cache-ttl", type=int, dest="dns_cache_ttl", help="DNS cache TTL seconds")
+    parser.add_argument("--prewarm", action="store_true", help="Pre-warm HTTP connections")
+    parser.add_argument("--happy-eyeballs", action="store_true", help="Enable Happy Eyeballs dialer")
+    parser.add_argument("--range-fetch-kb", type=int, help="Partial body fetch size in KB")
+    parser.add_argument("--simhash", action="store_true", help="Enable simhash dedupe")
+    parser.add_argument("--near-dup-th", type=int, dest="near_dup_th", help="Simhash Hamming distance threshold")
+    parser.add_argument("--form-dedupe", action="store_true", help="Enable form schema dedupe")
+    parser.add_argument("--server-weighting", action="store_true", help="Weight payloads by server fingerprint")
+    parser.add_argument("--endpoint-budget-ms", type=int, help="Per-endpoint time budget in ms")
+    parser.add_argument("--bloom", action="store_true", help="Enable persistent bloom skiplist")
+    parser.add_argument("--bloom-bits", type=int, help="Bloom filter size in bits")
+    parser.add_argument("--bloom-ttl", type=int, help="Bloom filter TTL hours")
+    parser.add_argument("--cpu-target-pct", type=int, help="CPU usage target percentage")
+    parser.add_argument("--cpu-pacer-min-rps", type=int, help="Minimum pacer rate")
+    parser.add_argument("--cpu-pacer-max-rps", type=int, help="Maximum pacer rate")
     args = parser.parse_args(argv)
 
     settings = merge_settings(args)
