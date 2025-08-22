@@ -45,6 +45,7 @@ class Settings:
     bandit_enabled: bool = False
     bandit_algo: str = "ucb1"
     dns_cache_ttl_sec: int = 900
+    dns_warmup_batch: int = 8
     prewarm_connections: bool = False
     happy_eyeballs: bool = False
     range_fetch_kb: int = 64
@@ -114,6 +115,8 @@ def merge_settings(cli_args: Namespace) -> Settings:
             data["bandit_algo"] = cli_args.bandit
     if getattr(cli_args, "dns_cache_ttl", None) is not None:
         data["dns_cache_ttl_sec"] = cli_args.dns_cache_ttl
+    if getattr(cli_args, "dns_warmup_batch", None) is not None:
+        data["dns_warmup_batch"] = cli_args.dns_warmup_batch
     if getattr(cli_args, "prewarm", False):
         data["prewarm_connections"] = True
     if getattr(cli_args, "happy_eyeballs", False):

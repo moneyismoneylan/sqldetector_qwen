@@ -2,11 +2,21 @@ from __future__ import annotations
 
 import asyncio
 import random
+import sys
 import time
 from collections import defaultdict, deque
-from typing import Dict  # Optional kaldırıldı
+from typing import Dict
 
 import httpx
+import certifi
+
+try:  # optional ssl trust-store on CPython 3.12+
+    if sys.version_info >= (3, 12):  # pragma: no cover - platform specific
+        import truststore  # type: ignore
+    else:  # pragma: no cover
+        truststore = None  # type: ignore
+except Exception:  # pragma: no cover - truststore not available
+    truststore = None  # type: ignore
 
 from .errors import RetryBudgetExceeded, TimeoutError, WAFBlocked
 from .config import Settings
@@ -67,12 +77,22 @@ class HttpClient:
             max_connections=self.settings.max_connections,
             max_keepalive_connections=self.settings.max_keepalive_connections,
         )
+        verify: object
+        if truststore:  # pragma: no cover - depends on optional package
+            verify = truststore.SSLContext()
+        else:
+            verify = certifi.where()
+        headers = {
+            "User-Agent": "sqldetector/1.0",
+            "Accept-Encoding": "br, gzip, zstd",
+        }
         self._client = httpx.AsyncClient(
             http2=True,
             transport=self.settings.transport,
             timeout=timeout,
             limits=limits,
-            headers={"User-Agent": "sqldetector/1.0"},
+            headers=headers,
+            verify=verify,
         )
         return self
 
