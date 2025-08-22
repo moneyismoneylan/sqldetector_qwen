@@ -95,6 +95,30 @@ Configuration keys introduced with this preset include:
 The fast pipeline performs an ultra-cheap keyword prefilter and maintains a
 fingerprint database to skip heavy tests for unchanged pages.
 
+## Turbo knobs
+
+Advanced users can enable additional performance features via command line
+flags.  These are disabled by default and require explicit opt-in.
+
+```
+sqldetector https://t \
+  --simhash --form-dedupe --range-fetch-kb 64 \
+  --bandit ucb1 --bloom --cpu-target-pct 40
+```
+
+Notable flags:
+
+* `--bandit {off,ucb1,thompson}` – payload family scheduler
+* `--dns-cache-ttl SEC` and `--prewarm` – DNS caching and connection warming
+* `--happy-eyeballs` – IPv6/IPv4 racing dialer
+* `--range-fetch-kb N` – partial body fetches for large files
+* `--simhash` / `--near-dup-th N` – near-duplicate page detection
+* `--form-dedupe` – skip identical form schemas
+* `--server-weighting` – bias payloads based on server fingerprints
+* `--endpoint-budget-ms MS` – per-endpoint time limits
+* `--bloom --bloom-bits N --bloom-ttl HOURS` – persistent skiplist
+* `--cpu-target-pct PCT --cpu-pacer-min-rps N --cpu-pacer-max-rps N` – CPU aware pacer
+
 ## Architecture
 
 ```

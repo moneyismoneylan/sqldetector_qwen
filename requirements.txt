@@ -8,3 +8,9 @@ llama-cpp-python==0.2.68
 # uvloop
 # pyahocorasick
 # re2
+# optional speed extras
+# aiodns
+# mmh3
+# psutil
+# orjson
+# simhash

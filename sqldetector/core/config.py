@@ -42,6 +42,23 @@ class Settings:
     max_body_kb: Optional[int] = None
     skip_binary_ext: Optional[list[str]] = None
     fingerprint_db: Optional[Path] = None
+    bandit_enabled: bool = False
+    bandit_algo: str = "ucb1"
+    dns_cache_ttl_sec: int = 900
+    prewarm_connections: bool = False
+    happy_eyeballs: bool = False
+    range_fetch_kb: int = 64
+    simhash_enabled: bool = False
+    near_duplicate_threshold: int = 6
+    form_dedupe_enabled: bool = False
+    server_weighting: bool = False
+    endpoint_budget_ms: int = 0
+    bloom_enabled: bool = False
+    bloom_bits: int = 1_048_576
+    bloom_ttl_hours: int = 72
+    cpu_target_pct: int = 0
+    cpu_pacer_min_rps: int = 1
+    cpu_pacer_max_rps: int = 200
 
 
 def load_config(path: Union[str, Path]) -> dict[str, Any]:
@@ -86,4 +103,40 @@ def merge_settings(cli_args: Namespace) -> Settings:
         data["max_tests_per_form"] = cli_args.max_tests_per_form
     if getattr(cli_args, "use_llm", None):
         data["use_llm"] = cli_args.use_llm
+    if getattr(cli_args, "bandit", None):
+        if cli_args.bandit == "off":
+            data["bandit_enabled"] = False
+        else:
+            data["bandit_enabled"] = True
+            data["bandit_algo"] = cli_args.bandit
+    if getattr(cli_args, "dns_cache_ttl", None) is not None:
+        data["dns_cache_ttl_sec"] = cli_args.dns_cache_ttl
+    if getattr(cli_args, "prewarm", False):
+        data["prewarm_connections"] = True
+    if getattr(cli_args, "happy_eyeballs", False):
+        data["happy_eyeballs"] = True
+    if getattr(cli_args, "range_fetch_kb", None) is not None:
+        data["range_fetch_kb"] = cli_args.range_fetch_kb
+    if getattr(cli_args, "simhash", False):
+        data["simhash_enabled"] = True
+    if getattr(cli_args, "near_dup_th", None) is not None:
+        data["near_duplicate_threshold"] = cli_args.near_dup_th
+    if getattr(cli_args, "form_dedupe", False):
+        data["form_dedupe_enabled"] = True
+    if getattr(cli_args, "server_weighting", False):
+        data["server_weighting"] = True
+    if getattr(cli_args, "endpoint_budget_ms", None) is not None:
+        data["endpoint_budget_ms"] = cli_args.endpoint_budget_ms
+    if getattr(cli_args, "bloom", False):
+        data["bloom_enabled"] = True
+    if getattr(cli_args, "bloom_bits", None) is not None:
+        data["bloom_bits"] = cli_args.bloom_bits
+    if getattr(cli_args, "bloom_ttl", None) is not None:
+        data["bloom_ttl_hours"] = cli_args.bloom_ttl
+    if getattr(cli_args, "cpu_target_pct", None) is not None:
+        data["cpu_target_pct"] = cli_args.cpu_target_pct
+    if getattr(cli_args, "cpu_pacer_min_rps", None) is not None:
+        data["cpu_pacer_min_rps"] = cli_args.cpu_pacer_min_rps
+    if getattr(cli_args, "cpu_pacer_max_rps", None) is not None:
+        data["cpu_pacer_max_rps"] = cli_args.cpu_pacer_max_rps
     return Settings(**data)

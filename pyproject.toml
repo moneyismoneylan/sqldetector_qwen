@@ -53,6 +53,13 @@ fast = [
     "pyahocorasick",
     "re2",
 ]
+speed = [
+    "aiodns",
+    "mmh3",
+    "psutil",
+    "orjson",
+    "simhash",
+]
 
 [project.scripts]
 sqldetector = "sqldetector_qwen:main"
