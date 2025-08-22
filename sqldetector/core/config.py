@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 
 from argparse import Namespace
-from dataclasses import dataclass, fields
+from dataclasses import dataclass, fields, field
 from pathlib import Path
 from typing import Any, Optional, Union
 
@@ -59,6 +59,8 @@ class Settings:
     cpu_target_pct: int = 0
     cpu_pacer_min_rps: int = 1
     cpu_pacer_max_rps: int = 200
+    # container for advanced experimental features
+    advanced: dict[str, Any] = field(default_factory=dict)
 
 
 def load_config(path: Union[str, Path]) -> dict[str, Any]:
@@ -83,6 +85,7 @@ def merge_settings(cli_args: Namespace) -> Settings:
     data: dict[str, Any] = {}
     if getattr(cli_args, "config", None):
         data.update(load_config(cli_args.config))
+    data.setdefault("advanced", {})
     # environment variables
     for f in fields(Settings):
         env_key = f"SQLDETECTOR_{f.name.upper()}"
@@ -139,4 +142,41 @@ def merge_settings(cli_args: Namespace) -> Settings:
         data["cpu_pacer_min_rps"] = cli_args.cpu_pacer_min_rps
     if getattr(cli_args, "cpu_pacer_max_rps", None) is not None:
         data["cpu_pacer_max_rps"] = cli_args.cpu_pacer_max_rps
+    # advanced flags mirrored under [advanced]
+    adv_map = {
+        "smart": bool,
+        "lang": str,
+        "report": str,
+        "import_openapi": str,
+        "import_postman": str,
+        "import_har": str,
+        "graphql": bool,
+        "grpc": bool,
+        "param_infer": bool,
+        "waf_learn": bool,
+        "ratelimit_auto": bool,
+        "tls_fp": str,
+        "http3": bool,
+        "cdn_aware": bool,
+        "oauth": str,
+        "layer_split_tests": bool,
+        "payload_cfg": str,
+        "delta_debug": bool,
+        "route_calibrate": bool,
+        "cluster_endpoints": bool,
+        "ci_diff": list,
+        "js_extract": bool,
+        "etag_conditional": bool,
+        "encoding_adapt": bool,
+        "sticky_session": bool,
+        "replay": str,
+        "otel": str,
+    }
+    adv = data["advanced"]
+    for key in adv_map:
+        attr = key.replace('-', '_')
+        val = getattr(cli_args, attr, None)
+        if val is not None:
+            adv[key] = val
+    data["advanced"] = adv
     return Settings(**data)

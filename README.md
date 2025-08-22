@@ -133,6 +133,22 @@ Notable flags:
 * `--bloom --bloom-bits N --bloom-ttl HOURS` – persistent skiplist
 * `--cpu-target-pct PCT --cpu-pacer-min-rps N --cpu-pacer-max-rps N` – CPU aware pacer
 
+## Advanced (20 features)
+
+An opt-in surface exposes experimental modules ranging from OpenAPI/Postman
+importers to GraphQL/gRPC fuzzing and WAF learning.  Every capability is
+disabled by default and guarded by a dedicated flag or `[advanced]` TOML key.
+
+Quick start enabling a few of the new features:
+
+```bash
+sqldetector --smart --import-openapi tests/fixtures/openapi.json \
+  --param-infer --waf-learn --report all https://example.com
+```
+
+Reports are written to `reports/` with JSON and HTML variants.  Runtime
+narration defaults to Turkish and can be switched with `--lang en`.
+
 ## Architecture
 
 ```
