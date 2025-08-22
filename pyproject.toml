@@ -10,14 +10,12 @@ authors = [{name = "AutoGen"}]
 readme = "README.md"
 requires-python = ">=3.9"
 dependencies = [
-    "httpx[http2,brotli,zstd]>=0.27",
+    "httpx[http2]>=0.27",
     "anyio>=4.0",
     "lxml>=5.0",
     "xxhash>=3.4",
-    "playwright>=1.45",
     "rich>=13.7",
     "tomli; python_version < '3.11'",
-    "zstandard",
     "psutil",
     "uvloop; platform_system != 'Windows'",
     "pyahocorasick",
@@ -34,6 +32,7 @@ dev = [
 test = [
     "pytest",
     "pytest-asyncio",
+    "xxhash",
 ]
 legacy = [
     "beautifulsoup4",
@@ -45,43 +44,28 @@ otel = [
     "opentelemetry-sdk>=1.26",
     "opentelemetry-exporter-otlp>=1.26"
 ]
-fast = [
-    "zstandard",
-    "xxhash",
-    "psutil",
-    "uvloop; platform_system != 'Windows'",
-    "pyahocorasick",
-    "re2",
-]
-speed = [
-    "aiodns",
-    "mmh3",
-    "psutil",
-    "orjson",
-    "simhash",
-]
-
-tls = [
-    "truststore; python_version >= '3.10'",
-]
-
 perf = [
     "httpx[http2,brotli]",
     "zstandard",
-    "truststore; python_version >= '3.10'",
-    "bitarray",
-    "xxhash",
-    "msgspec",
-    "boilerpy3",
 ]
-waf = [
-    "cloudscraper",
+ssl = [
+    "truststore; python_version >= '3.10'",
 ]
 metrics = [
     "prometheus-client",
 ]
+fastdiff = [
+    "xxhash>=3.4",
+    "msgspec",
+]
 headless = [
-    "playwright",
+    "playwright>=1.45",
+]
+bloom = [
+    "bitarray",
+]
+waf = [
+    "cloudscraper",
 ]
 
 [project.scripts]

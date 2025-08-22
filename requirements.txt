@@ -1,14 +1,17 @@
 cloudscraper
 beautifulsoup4
 llama-cpp-python==0.2.68
-httpx[http2,brotli,zstd]
-truststore; python_version>="3.10"
+httpx
 # optional perf extras
+httpx[http2,brotli]
 zstandard
+# optional SSL extras
+truststore; python_version>="3.10"
+# bloom filter
 bitarray
+# fast diffing
 xxhash
 msgspec
-boilerpy3
 # metrics
 prometheus-client
 # headless browser
