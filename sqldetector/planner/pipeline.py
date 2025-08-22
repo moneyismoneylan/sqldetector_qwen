@@ -23,7 +23,12 @@ def run(
     state = new_run(settings.trace_dir or Path("traces"))
     if settings.log_json:
         setup_json_logging(settings.log_level, state.run_id)
-    trace = TraceWriter(state.run_id, state.trace_dir)
+    trace = TraceWriter(
+        state.run_id,
+        state.trace_dir,
+        getattr(settings, "trace_sample_rate", 1.0),
+        getattr(settings, "trace_compress", None),
+    )
     trace.append_jsonl({"event": "pipeline_start", "url": url})
 
     if progress:

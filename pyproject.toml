@@ -16,7 +16,12 @@ dependencies = [
     "xxhash>=3.4",
     "playwright>=1.45",
     "rich>=13.7",
-    "tomli; python_version < '3.11'"
+    "tomli; python_version < '3.11'",
+    "zstandard",
+    "psutil",
+    "uvloop; platform_system != 'Windows'",
+    "pyahocorasick",
+    "re2",
 ]
 
 [project.optional-dependencies]
@@ -39,6 +44,14 @@ legacy = [
 otel = [
     "opentelemetry-sdk>=1.26",
     "opentelemetry-exporter-otlp>=1.26"
+]
+fast = [
+    "zstandard",
+    "xxhash",
+    "psutil",
+    "uvloop; platform_system != 'Windows'",
+    "pyahocorasick",
+    "re2",
 ]
 
 [project.scripts]

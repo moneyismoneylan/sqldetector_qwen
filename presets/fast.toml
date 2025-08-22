@@ -1,0 +1,33 @@
+[sqldetector]
+safe_mode = true
+trace_dir = "traces"
+trace_sample_rate = 0.2
+trace_compress = "zstd"
+stop_after_first_finding = true
+
+# HTTP client tuning for low-spec
+timeout_connect = 3.0
+timeout_read    = 6.0
+timeout_write   = 6.0
+timeout_pool    = 3.0
+max_connections = 10
+max_keepalive_connections = 4
+
+# Discovery & test caps
+max_pages = 150
+max_forms_per_page = 3
+max_tests_per_form = 2
+max_body_kb = 1024
+skip_binary_ext = ["jpg","jpeg","png","gif","webp","svg","ico","pdf","zip","gz","rar","7z","mp4","mp3","woff","woff2"]
+
+# LLM usage & cache
+use_llm = "auto"  # auto|always|never
+llm_cache_path = "cache/sqldetector.sqlite"
+llm_cache_ttl_hours = 72
+
+# Incremental scan store
+fingerprint_db = "cache/fingerprints.sqlite"
+
+# Hedging policy in FAST
+hedge_enabled = false
+hedge_delay_ms = 100
