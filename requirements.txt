@@ -1,3 +1,10 @@
 cloudscraper
 beautifulsoup4
 llama-cpp-python==0.2.68
+# optional deps for fast preset
+# zstandard
+# xxhash
+# psutil
+# uvloop
+# pyahocorasick
+# re2

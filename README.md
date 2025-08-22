@@ -71,6 +71,30 @@ The detector ships with several tuning knobs and optimisations:
 9. Compact JSON tracing to minimise I/O
 10. Reuse of HTTP/2 connections for lower overhead
 
+### FAST preset (low-spec)
+
+For a fast, resource-friendly scan on constrained machines:
+
+```
+sqldetector https://target --preset fast
+```
+
+The preset enables trace sampling and compression, caps discovery depth and
+test counts, and stops after the first finding. System resources are detected
+to auto-tune connection limits and timeouts.
+
+Configuration keys introduced with this preset include:
+
+* `trace_sample_rate`, `trace_compress`
+* `stop_after_first_finding`
+* `max_forms_per_page`, `max_tests_per_form`
+* `use_llm` (`auto`/`always`/`never`)
+* `llm_cache_path`, `llm_cache_ttl_hours`
+* `fingerprint_db`
+
+The fast pipeline performs an ultra-cheap keyword prefilter and maintains a
+fingerprint database to skip heavy tests for unchanged pages.
+
 ## Architecture
 
 ```

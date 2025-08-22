@@ -30,6 +30,18 @@ class Settings:
     trace_dir: Optional[Path] = None
     hedge_delay: float = 0.0
     transport: Optional[Any] = None
+    trace_sample_rate: float = 1.0
+    trace_compress: Optional[str] = None
+    stop_after_first_finding: bool = False
+    max_forms_per_page: Optional[int] = None
+    max_tests_per_form: Optional[int] = None
+    use_llm: str = "auto"
+    llm_cache_path: Optional[Path] = None
+    llm_cache_ttl_hours: int = 72
+    max_pages: Optional[int] = None
+    max_body_kb: Optional[int] = None
+    skip_binary_ext: Optional[list[str]] = None
+    fingerprint_db: Optional[Path] = None
 
 
 def load_config(path: Union[str, Path]) -> dict[str, Any]:
@@ -66,4 +78,12 @@ def merge_settings(cli_args: Namespace) -> Settings:
         data["log_json"] = True
     if getattr(cli_args, "log_level", None):
         data["log_level"] = cli_args.log_level
+    if getattr(cli_args, "stop_after_first_finding", False):
+        data["stop_after_first_finding"] = True
+    if getattr(cli_args, "max_forms_per_page", None) is not None:
+        data["max_forms_per_page"] = cli_args.max_forms_per_page
+    if getattr(cli_args, "max_tests_per_form", None) is not None:
+        data["max_tests_per_form"] = cli_args.max_tests_per_form
+    if getattr(cli_args, "use_llm", None):
+        data["use_llm"] = cli_args.use_llm
     return Settings(**data)
