@@ -11,6 +11,7 @@ PRESET_MAP = {
     "static": "fast",
     "admin": "stealth",
     "ecom": "crawler",
+    "heavy-site": "turbo",
 }
 
 

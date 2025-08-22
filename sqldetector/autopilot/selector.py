@@ -121,6 +121,8 @@ def classify_target(seed_url: str, client: Any, sysinfo: Dict[str, Any]) -> Dict
         profile["kind"] = "api-json"
     elif framework and forms <= 1:
         profile["kind"] = "spa"
+    elif forms >= 10:
+        profile["kind"] = "heavy-site"
     elif forms >= 3:
         profile["kind"] = "forms-heavy"
     elif profile["waf"]:
