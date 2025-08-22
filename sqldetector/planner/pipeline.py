@@ -19,6 +19,9 @@ def run(
     progress: Optional[Callable[[float], None]] = None,
 ) -> List[dict]:
     settings = settings or Settings()
+    from sqldetector.ui.narrate import Narrator
+    narrator = Narrator(lang=settings.advanced.get("lang", "tr"))
+    narrator.step(f"Sayfa geziliyor: {url}")
 
     state = new_run(settings.trace_dir or Path("traces"))
     if settings.log_json:
@@ -39,6 +42,15 @@ def run(
             progress(100.0)
         return []
 
+    if settings.advanced.get("micro"):
+        from sqldetector.runners.micro import run_micro
+        if progress:
+            progress(0.0)
+        result = asyncio.run(run_micro(url, settings.__dict__))
+        if progress:
+            progress(100.0)
+        narrator.ok("Micro tarama tamamlandı")
+        return result
     async def _run() -> List[dict]:
         async with HttpClient(settings) as client:
             try:
@@ -47,6 +59,7 @@ def run(
             except WAFBlocked:
                 if progress:
                     progress(50.0)
+                narrator.note("WAF engeli aşılıyor")
                 import cloudscraper
 
                 scraper = cloudscraper.create_scraper()
@@ -57,4 +70,6 @@ def run(
             trace.append_jsonl({"event": "request", "status": status})
             return [{"status": status}]
 
-    return asyncio.run(_run())
+    result = asyncio.run(_run())
+    narrator.ok("Tamamlandı")
+    return result
