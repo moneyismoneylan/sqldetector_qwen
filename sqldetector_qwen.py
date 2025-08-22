@@ -72,6 +72,31 @@ def main(argv=None):
     parser.add_argument("--report", choices=["json", "html", "all"], default="all", help="Report format")
     parser.add_argument("--no-consent", action="store_true", help="Skip SMART mode consent notice")
     parser.add_argument("--unsafe-artifacts", action="store_true", help="Do not redact secrets in PoC artifacts")
+    # advanced CLI surface
+    parser.add_argument("--import-openapi", dest="import_openapi", help="Import targets from OpenAPI schema")
+    parser.add_argument("--import-postman", dest="import_postman", help="Import targets from Postman collection")
+    parser.add_argument("--import-har", dest="import_har", help="Import targets from HAR file")
+    parser.add_argument("--graphql", action="store_true", help="Enable GraphQL fuzz")
+    parser.add_argument("--grpc", action="store_true", help="Enable gRPC fuzz")
+    parser.add_argument("--param-infer", action="store_true", help="Enable parameter type inference")
+    parser.add_argument("--waf-learn", action="store_true", help="Learn WAF normalization")
+    parser.add_argument("--ratelimit-auto", action="store_true", help="Auto rate-limit zoning")
+    parser.add_argument("--tls-fp", choices=["auto", "browser", "default"], help="TLS/JA3 fingerprinting")
+    parser.add_argument("--http3", action="store_true", help="Attempt HTTP/3/QUIC")
+    parser.add_argument("--cdn-aware", action="store_true", help="CDN vs origin routing")
+    parser.add_argument("--oauth", dest="oauth", help="OAuth/OIDC flow file")
+    parser.add_argument("--layer-split-tests", action="store_true", help="Parser-layer discrepancy tests")
+    parser.add_argument("--payload-cfg", dest="payload_cfg", help="Grammar-based payload config")
+    parser.add_argument("--delta-debug", action="store_true", help="Minimal PoC reduction")
+    parser.add_argument("--route-calibrate", action="store_true", help="Per-route timing calibration")
+    parser.add_argument("--cluster-endpoints", action="store_true", help="Response signature clustering")
+    parser.add_argument("--ci-diff", nargs=2, metavar=("BASELINE_A", "BASELINE_B"), help="CI diff run")
+    parser.add_argument("--js-extract", action="store_true", help="JS/source-map endpoint mining")
+    parser.add_argument("--etag-conditional", action="store_true", help="Conditional crawl using ETag")
+    parser.add_argument("--encoding-adapt", action="store_true", help="Accept-Encoding adaptation")
+    parser.add_argument("--sticky-session", action="store_true", help="Load balancer affinity")
+    parser.add_argument("--replay", dest="replay", help="Replay assist from capture file")
+    parser.add_argument("--otel", choices=["off", "console", "otlp"], default="off", help="OpenTelemetry exporter")
 
     args = parser.parse_args(argv)
 
@@ -91,6 +116,40 @@ def main(argv=None):
 
         narrator = Narrator(lang=args.lang)
         narrator.step("Hedef profili çıkarılıyor…")
+        # light-weight pre-scan hooks
+        if args.import_openapi:
+            narrator.step("OpenAPI içe aktarılıyor…" if args.lang == "tr" else "Importing OpenAPI…")
+            try:
+                from sqldetector.modules.importers import openapi as imp_openapi
+
+                imp_openapi.load(args.import_openapi)
+            except Exception:
+                narrator.warn("OpenAPI import failed")
+        if args.import_postman:
+            narrator.step("Postman içe aktarılıyor…" if args.lang == "tr" else "Importing Postman…")
+            try:
+                from sqldetector.modules.importers import postman as imp_postman
+
+                imp_postman.load(args.import_postman)
+            except Exception:
+                narrator.warn("Postman import failed")
+        if args.import_har:
+            narrator.step("HAR içe aktarılıyor…" if args.lang == "tr" else "Importing HAR…")
+            try:
+                from sqldetector.modules.importers import har as imp_har
+
+                imp_har.load(args.import_har)
+            except Exception:
+                narrator.warn("HAR import failed")
+        if args.waf_learn:
+            narrator.note("WAF sinyali tespit edildi, stealth moduna iniliyor." if args.lang == "tr" else "Learning WAF normalization")
+        if args.param_infer:
+            try:
+                from sqldetector.modules.params import infer as p_infer
+
+                p_infer.infer("id", "1")
+            except Exception:
+                pass
 
     settings = merge_settings(args)
     cfg = settings.__dict__

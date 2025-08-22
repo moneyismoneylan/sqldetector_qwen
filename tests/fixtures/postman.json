@@ -1,0 +1,14 @@
+{
+ "item": [
+  {
+   "name": "Get",
+   "request": {"method": "GET", "url": {"raw": "https://example.com/a"}}
+  },
+  {
+   "name": "Sub",
+   "item": [
+    {"name": "Post", "request": {"method": "POST", "url": {"raw": "https://example.com/b"}}}
+   ]
+  }
+ ]
+}

@@ -23,13 +23,26 @@ def _write_json(data: Dict[str, Any], out: Path) -> None:
 
 def _write_html(data: Dict[str, Any], out: Path) -> None:
     body = ["<html><head><meta charset='utf-8'><style>", MINIMAL_CSS, "</style></head><body>"]
-    body.append("<h1>Overview</h1><section><pre>")
-    body.append(json.dumps(data.get("overview", {}), indent=2))
-    body.append("</pre></section>")
-    if findings := data.get("findings"):
-        body.append("<h1>Findings</h1><section><pre>")
-        body.append(json.dumps(findings, indent=2))
+    def section(title: str, content: Any) -> None:
+        body.append(f"<h1>{title}</h1><section><pre>")
+        body.append(json.dumps(content, indent=2))
         body.append("</pre></section>")
+
+    section("Overview", data.get("overview", {}))
+    if findings := data.get("findings"):
+        section("Findings", findings)
+    if signals := data.get("signals"):
+        section("Signals", signals)
+    if waf := data.get("waf_timeline"):
+        section("WAF timeline", waf)
+    if clusters := data.get("endpoint_clusters"):
+        section("Endpoint Clusters", clusters)
+    if params := data.get("param_inference"):
+        section("Param Inference", params)
+    if replay := data.get("replay_hits"):
+        section("Replay Assist hits", replay)
+    if diff := data.get("ci_diff"):
+        section("CI Diff summary", diff)
     body.append("</body></html>")
     out.write_text("".join(body))
 
